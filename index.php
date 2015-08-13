@@ -50,55 +50,64 @@ $db = new PDO(
    'root'
 );
 
-
-
-
-//get all systems
-$app->get(
-    '/systems',
-    function () use ($db) {
-        $query = "SELECT name from system";
-        $statement = $db->prepare($query);
-        $statement->execute();
-        $result = $statement->fetchAll();
-        echo json_encode($result);
-    }
-);
-
-$app->get('/game', function() use($db){
-    $query = "SELECT name FROM game JOIN system on game.system_id = 3";
+function executeQuery($query){
+    global $db;
     $statement = $db->prepare($query);
     $statement->execute();
     $result = $statement->fetchAll();
     echo json_encode($result);
+}
+
+
+/* SYSTEM */
+
+//get all systems
+$app->get(
+    '/systems',
+    function (){
+        $query = "SELECT * from system";
+        executeQuery($query);
+    }
+);
+
+
+
+//get system by id
+$app->get(
+    '/system/:id',
+    function ($id) {
+        $query = "SELECT name from system WHERE id = $id;";
+        executeQuery($query);
+    }
+);
+
+/* END OF SYSTEM */
+
+$app->get(
+    '/games',
+    function (){
+        $query = "SELECT * from game";
+        executeQuery($query);
+    }
+);
+
+
+
+$app->get('/game/:systemid', function($systemid) use($db){
+    $query = "SELECT name FROM game WHERE system_id = $systemid";
+    executeQuery($query);
 });
 
 // POST route
 $app->post(
-    '/post',
+    '/post/system/',
     function () {
-        echo 'This is a POST route';
-    }
-);
-
-// PUT route
-$app->put(
-    '/put',
-    function () {
-        echo 'This is a PUT route';
-    }
-);
-
-// PATCH route
-$app->patch('/patch', function () {
-    echo 'This is a PATCH route';
-});
-
-// DELETE route
-$app->delete(
-    '/delete',
-    function () {
-        echo 'This is a DELETE route';
+        global $app;
+        $params= json_decode($app->request->getBody(),true);
+        $name = $params['name'];
+        $query = "INSERT INTO system (name) VALUES ('" . $name . "')";
+        echo $query;
+        //executeQuery($query);
     }
 );
 
